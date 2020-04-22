@@ -1,4 +1,7 @@
 import Vue from "vue";
+import 'bootstrap'
+import 'bootstrap/dist/css/bootstrap.css'
+import '@/assets/style.css'
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";

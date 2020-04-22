@@ -1,0 +1,96 @@
+Исходные условия: система Ubuntu - желательно НЕ рутовый пользователь(для продакшн сервера)
+
+Исходим из того чо репозиториии установлены в папку /var/www/eltex.test(фронт) и  api.eltex.test(бэк)
+соответственно.
+
+Минимально необходимые требования - это установленный nodejs.
+Используем официальную инструкцию по адресу https://github.com/nodesource/distributions/blob/master/README.md
+
+Опираясь на нее, вводим в командной строке
+    > curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+    > sudo apt-get install -y nodejs
+С нодой также должен установться  npm( проверяем командой "npm -v" ), если этого не произошло 
+    > sudo apt-get install npm 
+
+Далее 2 варианта    
+
+ВАРИАНТ 1 
+    ЗАПУСК В ТЕСТОВОМ РЕЖИМЕ (самый простой вариант)
+    1 Переходим в директорию фронта
+        > cd /var/www/eltex.test
+        > npm install
+        > npm run serve
+    2 Переходим в директорию бэка(в новом терминале)
+        > cd /var/www/api.eltex.test
+        > cp ./config/sample.data.json ./config/data.json // копируем конфиг-файл,заигноренный в гите, для хранения данных из образца
+        >npm install
+        > npm run compile
+        > npm run start:test
+    или компиляция и запуск  в один шаг
+        > cd /var/www/api.eltex.test  
+        > cp ./config/sample.data.json ./config/data.json    
+        >npm install  
+        > npm run sес:test
+    3 В браузере для проверки бэка можно набрать адрес
+        http://localhost:4321/api/v1
+        результат "{success: 456}"
+    4 Заходим на страничку http://localhost:8080        
+        
+
+
+
+Вариант 2 (частично сокращенный)
+
+=== 
+
+1 Устанавливаем сервер (  )
+    > sudo apt update
+    > sudo apt install nginx
+2 установку и настройку ufw(брандмауэр) пропустим, как несущественную для запуска приложения
+
+3 создадим для nginx конфиг файлы(точнее скопируем их из папки deploy, для простоты сразу в sites-enabled)
+    > sudo cp /var/www/eltex.test/deploy/eltex.test  /etc/nginx/sites-enabled/eltex.test
+    > sudo cp /var/www/eltex.test/deploy/api.eltex.test  /etc/nginx/sites-enabled/api.eltex.test
+
+4 перезапуск nginx
+    > sudo service nginx restart
+
+5 добавим в etc/hosts строки для редиректа на локалхост
+    "127.0.0.1  eltex.test"
+    "127.0.0.1  api.eltex.test"    
+
+Note*
+    как вариант для простоты можно было повесить АПИ и начальный бандл на один хост,
+    в конфиге nginx разделить запросы
+-------------------------------------------
+    location / {
+                try_files $uri $uri/ =404;
+        }
+    location /api/v1 {
+                   proxy_pass http://localhost:4321;
+                }     
+--------------------------------------------------
+   не будет проблем с CORS
+
+6 Создаем бандл для фронта
+    > cd /var/www/eltex.test
+    > npm install
+    > npm run build
+
+7 Запускаем бэк 
+    > cd /var/www/api.eltex.test
+    > npm install
+    > npm run stc:prod
+
+    вместо последней команды как вариант запуск через pm2
+    > sudo npm i -g pm2 /// установка pm2 глобально
+    > npm run compile
+    > pm2 start npm -- run start:prod
+
+8 В браузере для проверки бэка можно набрать адрес
+        http://api.eltex.tast/api/v1
+        результат "{success: 456}"
+  Заходим на страничку http://eltex.test     
+
+
+    
