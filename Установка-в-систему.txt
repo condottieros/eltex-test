@@ -92,5 +92,7 @@ Note*
         результат "{success: 456}"
   Заходим на страничку http://eltex.test     
 
-
+ПОЛЬЗОВАТЕЛИ: 
+1 login: user1 , password: aaa111
+2 login: user2 , password: bbb222
     
