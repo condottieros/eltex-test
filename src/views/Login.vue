@@ -11,56 +11,52 @@
 import axios from "@/plugins/axios";
 import { Component, Vue } from "vue-property-decorator";
 import LoginForm from "@/components/LoginForm.vue";
+import { checkLoginService } from "@/services";
+import store from "@/store";
 
-type ReturnLogin =
-  | { result: false; code: string; message: string }
-  | { result: true; user: string };
+type ResponseResult<Payload = any> = {
+  result: boolean;
+  payload?: Payload;
+  error?: any;
+};
 
 @Component<Home>({
-  components: { LoginForm }
+  components: { LoginForm },
+  async beforeRouteEnter(to, from, next) {
+    /**
+     * Если флаг в сторе, выставленн в true
+     * значит мы заходили на другой роут и были перенаправлены сюда
+     * то есть мы не залогинены и проверку производить еще раз не нужно
+     * остаемся в этом роуте (компоненте)
+     */
+    if (store.state.loginIsChecked) {
+      return next();
+    }
+    const isLogined = await checkLoginService();
+    /**  при попытке входа на страницу логина авторизованного
+     * пользователя редиректим его
+     * на страницу теста
+     */
+    isLogined ? next("/") : next();
+  }
 })
 export default class Home extends Vue {
   protected loading = true;
+
   protected error = false;
 
   async login(credentials: {}) {
-    try {
-      const { data } = await axios.post<ReturnLogin>("/login", credentials, {
-        withCredentials: true
-      });
-      console.log(data);
-      if (!data.result) return alert(data.message);
-
-      this.$store.commit("login", data.user);
-      this.$router.push("/");
-    } catch (e) {
-      alert("Ошибка соедиения. Повторите попытку !");
+    const { data } = await axios.post<ResponseResult<string>>(
+      "/login",
+      credentials
+    );
+    if (!data.result) {
+      return alert(data.error);
     }
+    this.$store.commit("login", data.payload);
+    this.$router.push("/");
   }
 }
-/*
-  public async created() {    
-    const checked = await this.checkAuth();
-    if (checked === "error") return (this.error = true);
-    if (checked) return this.$router.push({ name: "test_line" });
-    this.loading = false;    
-  }*/
-/*
-  async checkAuth(): Promise<boolean | "error"> {
-    try {
-      const { data: res } = await axios.get<ResultLogin>("/check-auth", {
-        withCredentials: true
-      });
-      console.log(res);
-      if (res.result) {
-        this.$store.commit("login", res.user);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return "error";
-    }
-  } */
 </script>
 <style scoped>
 .home {

@@ -33,10 +33,25 @@
 import { Vue, Component } from "vue-property-decorator";
 import axios from "@/plugins/axios";
 import { BaseAPIURL } from "@/constats";
+import { checkLoginService } from "@/services";
+import store from "@/store";
 
 type LogoutResult = { result: boolean };
 
-@Component({})
+@Component({
+  async beforeRouteEnter(to, from, next) {
+    /**
+     * Проверяем, не были ли мы перенаправлены с компонента логина
+     * после проверки удачной  авторизации
+     * если да  на сервер проверку не шлем, переходим сразу в компонент
+     */
+    if (store.getters.isAuth) {
+      return next();
+    }
+    const isLogined = await checkLoginService();
+    isLogined ? next() : next("/login");
+  }
+})
 export default class TestLine extends Vue {
   public currentTick = 0;
 
@@ -47,33 +62,19 @@ export default class TestLine extends Vue {
   public pending = false;
 
   async created() {
-    try {
-      const { data: res } = await axios.get("/check-test", {
-        withCredentials: true
-      });
-      if (!res.result)
-        return alert("Ошибка сервера! Попробуйте перелогиниться !");
-      if (res.current) return this.startTest();
-      if (res.testResult) {
-        this.testResult = res.testResult.count;
-        this.completed = true;
-      }
-      return true;
-    } catch (e) {
-      alert("Ошибка соединения! Перезагрузите страницу пожалуйста");
-      console.log(e);
+    const { data: res } = await axios.get("/check-test");
+    if (res.testResult) {
+      this.testResult = res.testResult.count;
+      this.completed = true;
     }
+    if (res.current) this.startTest();
   }
 
   async logout() {
-    try {
-      const { data } = await axios.get<LogoutResult>("/logout");
-      if (data.result) {
-        this.$store.commit("logout");
-        this.$router.push({ name: "login" });
-      }
-    } catch (e) {
-      console.log(e);
+    const { data } = await axios.get<LogoutResult>("/logout");
+    if (data.result) {
+      this.$store.commit("logout");
+      this.$router.push({ name: "login" });
     }
   }
 

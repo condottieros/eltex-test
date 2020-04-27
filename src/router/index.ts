@@ -33,19 +33,17 @@ const router = new VueRouter({
   routes
 });
 router.beforeEach(async (to, from, next) => {
-  if (store.state.user.isAuth) return to.path === '/' ? next() : next('/')
-  try {
-    const { data: res } = await axios.get<ResultLogin>("/check-auth", {
-      withCredentials: true
-    });
-    if (res.result) {
-      store.commit("login", res.user);
-      return to.path === '/' ? next() : next('/')
-    } else return to.path === '/login' ? next() : next('/login')
-  } catch (e) {
-    store.commit('connectError', true)
-    return to.path === '/login' ? next() : next('/login')
-  }
+  /*
+  const res = await axios.get<ResultLogin>("/check-auth");
+  if (res && res.data && res.data.result) {
+    store.commit("login", res.data.user);
+    return to.path === '/' ? next() : next('/')
+  } else return to.path === '/login' ? next() : next('/login') */
+  /* } catch (e) {   
+   store.commit('connectError', true)
+   return to.path === '/login' ? next() : next('/login')
+ } */
+ next()
 })
 
 export default router;
