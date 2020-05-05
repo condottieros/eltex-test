@@ -8,8 +8,7 @@ type CheckResult = {
 
 export async function checkLoginService(): Promise<boolean> {
     const {data} = await axios.get<CheckResult>('/check-auth')      
-    if (data.result) store.commit('login', data.payload) // коммитим юзера если он авторизован
-    store.commit('setLoginChecked', true) // установим флаг что проверка уже логина произведена
+    if (data.result) store.commit('login', data.payload) // коммитим юзера если он авторизован    
     return data.result
 
 }

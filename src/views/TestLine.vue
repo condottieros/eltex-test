@@ -27,31 +27,19 @@
         </div>
       </div>
     </div>
+    <div  class="mt-4">
+      <router-link to="/secure-page">Дополнительная секьюрная страница</router-link>
+    </div>
   </div>
 </template>
 <script lang="ts">
 import { Vue, Component } from "vue-property-decorator";
 import axios from "@/plugins/axios";
 import { BaseAPIURL } from "@/constats";
-import { checkLoginService } from "@/services";
-import store from "@/store";
 
 type LogoutResult = { result: boolean };
 
-@Component({
-  async beforeRouteEnter(to, from, next) {
-    /**
-     * Проверяем, не были ли мы перенаправлены с компонента логина
-     * после проверки удачной  авторизации
-     * если да  на сервер проверку не шлем, переходим сразу в компонент
-     */
-    if (store.getters.isAuth) {
-      return next();
-    }
-    const isLogined = await checkLoginService();
-    isLogined ? next() : next("/login");
-  }
-})
+@Component({})
 export default class TestLine extends Vue {
   public currentTick = 0;
 

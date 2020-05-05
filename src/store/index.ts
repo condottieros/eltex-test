@@ -9,8 +9,7 @@ interface User {
 }
 type Store = {
   user: User,
-  connectError: boolean,
-  loginIsChecked: boolean
+  connectError: boolean
 }
 
 export default new Vuex.Store<Store>({
@@ -19,7 +18,6 @@ export default new Vuex.Store<Store>({
       name: '',
       isAuth: false
     },
-    loginIsChecked: false,
     connectError: false
   },
   mutations: {
@@ -33,9 +31,6 @@ export default new Vuex.Store<Store>({
     },
     connectError(state, s: boolean) {
       state.connectError = s
-    },
-    setLoginChecked(state, v: boolean) {
-      state.loginIsChecked = v
     }
   },
   getters: {
